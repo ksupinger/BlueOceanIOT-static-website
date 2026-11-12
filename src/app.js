@@ -8,5 +8,33 @@ document.querySelectorAll('[data-project]').forEach(button=>button.addEventListe
 document.querySelector('.close-dialog').addEventListener('click',()=>dialog.close());
 document.querySelector('#dialog-contact').addEventListener('click',()=>dialog.close());
 dialog.addEventListener('click',event=>{if(event.target===dialog){const bounds=dialog.getBoundingClientRect();if(event.clientX<bounds.left||event.clientX>bounds.right||event.clientY<bounds.top||event.clientY>bounds.bottom)dialog.close()}});
-document.querySelector('#contact-form').addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget;const button=form.querySelector('button[type="submit"]');const status=document.querySelector('#form-status');button.disabled=true;status.textContent='Saving your inquiry…';try{const response=await fetch('/api/contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.fromEntries(new FormData(form)))});const result=await response.json();if(!response.ok)throw new Error(result.error||'Unable to save your inquiry.');form.reset();status.textContent='Thank you! Your inquiry has been saved. We’ll reply using the email address you provided.';}catch(error){status.textContent=error.message+' You can also email kevin@blueoceaniot.com.';}finally{button.disabled=false;}});
+document.querySelector('#contact-form').addEventListener('submit', event => {
+  event.preventDefault();
+  const button = event.currentTarget.querySelector('button[type=submit]');
+  if (button.disabled) return;
+  const fields = new FormData(event.currentTarget);
+  const name = fields.get('name').trim();
+  const email = fields.get('email').trim();
+  const company = fields.get('company').trim();
+  const message = fields.get('message').trim();
+  if (!name || !message) {
+    document.querySelector('#form-status').textContent = 'Enter your name and a message.';
+    return;
+  }
+  const subject = 'Inquiry from BlueOceanIOT web site';
+  const body = [
+    'Name: ' + name,
+    'Email: ' + email,
+    ...(company ? ['Company: ' + company] : []),
+    '',
+    message.replace(/\r?\n/g, '\r\n'),
+    '',
+    'Thank you for your inquiry, we will respond as soon as possible. We appreciate your time',
+  ].join('\r\n');
+  const recipient = 'kevin@blueoceaniot.com';
+  const draftUrl = 'mailto:' + recipient + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+  document.querySelector('#form-status').textContent = 'Review and send the inquiry in your email app.';
+  button.disabled = true;
+  window.location.href = draftUrl;
+});
 document.querySelector('#year').textContent=new Date().getFullYear();

@@ -9,3 +9,5 @@ footer{font-size:15px}
 
 footer{padding-left:5px}footer .brand{justify-self:start;margin:0}
 
+
+#contact-form .button:disabled { background: #687680; color: #fff; cursor: not-allowed; }
